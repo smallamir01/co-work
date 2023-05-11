@@ -1,0 +1,39 @@
+version: "3.5"
+
+services:
+  redis_cache:
+    restart: always
+    image: redis:6.2
+
+postgres_db:
+  restart: always
+  image: postgres:14
+  environment:
+    POSTGRES_USER:"postgres_db_user"
+    POSTGRES_PASSWORD:"postgres_db_password"
+    POSTGRES_DB:"postgres_db_database"
+  ports:
+    . "5432:5432"
+  volumes:
+    . pgdata:var/lib/postgresql/data
+
+web:
+  container_name: cowrk_backend
+  environment:
+  build:
+    context: '.'
+    dockerfile: ".DockerFile"
+
+  volumes:
+    . .:/app
+  ports:
+    . "8000:8000"
+  depends_on:
+    . redis_cache
+    . postgres_db
+  command: bash -c "python3 mange.py migrate"
+
+
+
+volumes:
+  pgdata:
